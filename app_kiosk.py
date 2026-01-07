@@ -48,3 +48,4 @@ else:
         st.session_state.submitted = False
         st.session_state.last_data = {}
         st.rerun()
+
