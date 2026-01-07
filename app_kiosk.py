@@ -42,17 +42,20 @@ if not st.session_state.submitted:
             st.error("Semua kolom wajib diisi.")
         else:
             data = {
-                "waktu_pengajuan": datetime.now().isoformat(),
+                "waktu_pengajuan": datetime.utcnow().isoformat(),
                 "nama": nama,
                 "domisili": domisili,
                 "no_rekomendasi": no_rekom
             }
 
-            supabase.table("permohonan_arsip").insert(data).execute()
+            result = supabase.table("permohonan_arsip").insert(data).execute()
 
-            st.session_state.submitted = True
-            st.session_state.last_data = data
-            st.rerun()
+            if result.data:
+                st.session_state.submitted = True
+                st.session_state.last_data = data
+                st.rerun()
+            else:
+                st.error("Gagal menyimpan data. Periksa RLS Supabase.")
 
 else:
     data = st.session_state.last_data
