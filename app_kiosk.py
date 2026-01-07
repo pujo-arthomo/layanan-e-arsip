@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import os
+from pandas.errors import EmptyDataError
 
 # =========================
 # KONFIGURASI HALAMAN
@@ -12,7 +13,7 @@ st.set_page_config(
 )
 
 # =========================
-# PATH DATA
+# KONFIGURASI DATA
 # =========================
 DATA_DIR = "data"
 DATA_FILE = os.path.join(DATA_DIR, "submissions.csv")
@@ -24,13 +25,13 @@ COLUMNS = [
     "no_rekomendasi"
 ]
 
-# Pastikan folder ada
+# =========================
+# PASTIKAN FOLDER & FILE ADA
+# =========================
 os.makedirs(DATA_DIR, exist_ok=True)
 
-# Pastikan file CSV ada & valid
-if not os.path.exists(DATA_FILE) or os.path.getsize(DATA_FILE) == 0:
+if not os.path.exists(DATA_FILE):
     pd.DataFrame(columns=COLUMNS).to_csv(DATA_FILE, index=False)
-
 
 # =========================
 # STATE
@@ -85,7 +86,14 @@ if not st.session_state.submitted:
                 "no_rekomendasi": no_rekomendasi
             }
 
-            df_existing = pd.read_csv(DATA_FILE)
+            # =========================
+            # BACA CSV DENGAN AMAN
+            # =========================
+            try:
+                df_existing = pd.read_csv(DATA_FILE)
+            except EmptyDataError:
+                df_existing = pd.DataFrame(columns=COLUMNS)
+
             df_new = pd.DataFrame([new_data])
             df_final = pd.concat([df_existing, df_new], ignore_index=True)
             df_final.to_csv(DATA_FILE, index=False)
