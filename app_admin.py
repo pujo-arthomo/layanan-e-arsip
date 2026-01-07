@@ -2,13 +2,7 @@ import streamlit as st
 import pandas as pd
 from supabase import create_client
 
-# =========================
-# CONFIG
-# =========================
-st.set_page_config(
-    page_title="Admin Permohonan Arsip",
-    layout="wide"
-)
+st.set_page_config(page_title="Admin Arsip", layout="wide")
 
 ADMIN_USER = "admin"
 ADMIN_PASS = "arsip123"
@@ -18,21 +12,16 @@ supabase = create_client(
     st.secrets["SUPABASE_KEY"]
 )
 
-# =========================
-# LOGIN
-# =========================
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 if not st.session_state.logged_in:
     st.markdown("## 🔐 Login Admin")
 
-    with st.form("login"):
-        u = st.text_input("Username")
-        p = st.text_input("Password", type="password")
-        login = st.form_submit_button("Masuk")
+    u = st.text_input("Username")
+    p = st.text_input("Password", type="password")
 
-    if login:
+    if st.button("Masuk"):
         if u == ADMIN_USER and p == ADMIN_PASS:
             st.session_state.logged_in = True
             st.rerun()
