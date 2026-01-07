@@ -1,103 +1,58 @@
 import streamlit as st
 import pandas as pd
-import os
-from pandas.errors import EmptyDataError
+from supabase import create_client
 
 # =========================
-# KONFIGURASI HALAMAN
+# CONFIG
 # =========================
 st.set_page_config(
-    page_title="Admin - Permohonan Arsip",
+    page_title="Admin Permohonan Arsip",
     layout="wide"
 )
 
-# =========================
-# KONFIGURASI LOGIN (CORE)
-# =========================
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "arsip123"
+ADMIN_USER = "admin"
+ADMIN_PASS = "arsip123"
+
+supabase = create_client(
+    st.secrets["SUPABASE_URL"],
+    st.secrets["SUPABASE_KEY"]
+)
 
 # =========================
-# KONFIGURASI DATA
-# =========================
-DATA_DIR = "data"
-DATA_FILE = os.path.join(DATA_DIR, "submissions.csv")
-
-COLUMNS = [
-    "waktu_pengajuan",
-    "nama",
-    "domisili",
-    "no_rekomendasi"
-]
-
-# =========================
-# PASTIKAN FILE DATA ADA
-# =========================
-os.makedirs(DATA_DIR, exist_ok=True)
-
-if not os.path.exists(DATA_FILE):
-    pd.DataFrame(columns=COLUMNS).to_csv(DATA_FILE, index=False)
-
-# =========================
-# SESSION STATE LOGIN
+# LOGIN
 # =========================
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-# =========================
-# FUNGSI BACA DATA (AMAN)
-# =========================
-def load_data():
-    try:
-        df = pd.read_csv(DATA_FILE)
-    except EmptyDataError:
-        df = pd.DataFrame(columns=COLUMNS)
-    return df
-
-# =========================
-# HALAMAN LOGIN
-# =========================
 if not st.session_state.logged_in:
-    st.markdown("## 🔐 Login Petugas Arsip")
+    st.markdown("## 🔐 Login Admin")
 
-    with st.form("login_form"):
-        username = st.text_input("Username")
-        password = st.text_input("Password", type="password")
-        login_btn = st.form_submit_button("Masuk")
+    with st.form("login"):
+        u = st.text_input("Username")
+        p = st.text_input("Password", type="password")
+        login = st.form_submit_button("Masuk")
 
-    if login_btn:
-        if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+    if login:
+        if u == ADMIN_USER and p == ADMIN_PASS:
             st.session_state.logged_in = True
-            st.success("Login berhasil")
             st.rerun()
         else:
-            st.error("Username atau password salah")
+            st.error("Login gagal")
 
-# =========================
-# DASHBOARD ADMIN
-# =========================
 else:
     st.markdown("## 📊 Dashboard Permohonan Arsip")
-    st.markdown("Data permohonan yang masuk melalui kiosk")
 
-    st.divider()
+    res = supabase.table("permohonan_arsip").select("*").order(
+        "waktu_pengajuan", desc=True
+    ).execute()
 
-    df = load_data()
+    df = pd.DataFrame(res.data)
 
     if df.empty:
-        st.info("Belum ada data permohonan.")
+        st.info("Belum ada data.")
     else:
-        # Urutkan terbaru di atas
-        df = df.sort_values(by="waktu_pengajuan", ascending=False)
+        st.dataframe(df, use_container_width=True)
 
-        st.dataframe(
-            df,
-            use_container_width=True,
-            hide_index=True
-        )
-
-    st.divider()
-
-    if st.button("🔓 Logout"):
+    if st.button("Logout"):
         st.session_state.logged_in = False
         st.rerun()
