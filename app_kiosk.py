@@ -17,18 +17,20 @@ st.set_page_config(
 DATA_DIR = "data"
 DATA_FILE = os.path.join(DATA_DIR, "submissions.csv")
 
-# Pastikan folder & file ada
-if not os.path.exists(DATA_DIR):
-    os.makedirs(DATA_DIR)
+COLUMNS = [
+    "waktu_pengajuan",
+    "nama",
+    "domisili",
+    "no_rekomendasi"
+]
 
-if not os.path.exists(DATA_FILE):
-    df_init = pd.DataFrame(columns=[
-        "waktu_pengajuan",
-        "nama",
-        "domisili",
-        "no_rekomendasi"
-    ])
-    df_init.to_csv(DATA_FILE, index=False)
+# Pastikan folder ada
+os.makedirs(DATA_DIR, exist_ok=True)
+
+# Pastikan file CSV ada & valid
+if not os.path.exists(DATA_FILE) or os.path.getsize(DATA_FILE) == 0:
+    pd.DataFrame(columns=COLUMNS).to_csv(DATA_FILE, index=False)
+
 
 # =========================
 # STATE
@@ -83,9 +85,10 @@ if not st.session_state.submitted:
                 "no_rekomendasi": no_rekomendasi
             }
 
-            df = pd.read_csv(DATA_FILE)
-            df = pd.concat([df, pd.DataFrame([new_data])], ignore_index=True)
-            df.to_csv(DATA_FILE, index=False)
+            df_existing = pd.read_csv(DATA_FILE)
+            df_new = pd.DataFrame([new_data])
+            df_final = pd.concat([df_existing, df_new], ignore_index=True)
+            df_final.to_csv(DATA_FILE, index=False)
 
             st.session_state.last_data = new_data
             st.session_state.submitted = True
