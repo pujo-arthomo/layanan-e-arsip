@@ -119,39 +119,79 @@ else:
     # INPUT ARSIP MANUAL
     # =========================
     elif menu == "➕ Input Arsip":
-        st.markdown("## ➕ Input Koleksi Arsip Baru")
+    st.markdown("## ➕ Input Koleksi Arsip Baru")
 
-        with st.form("input_arsip"):
-            no_berkas = st.text_input("No Berkas")
-            kode_klasifikasi = st.text_input("Kode Klasifikasi")
-            lokasi_bangunan = st.text_input("Lokasi Bangunan")
-            jenis_bangunan = st.text_input("Jenis Bangunan")
-            retribusi = st.text_input("Retribusi")
-            kurun_waktu = st.text_input("Kurun Waktu")
-            jumlah_arsip = st.number_input("Jumlah Arsip", min_value=0, step=1)
-            tingkat_perkembangan = st.text_input("Tingkat Perkembangan")
-            keterangan_boks = st.text_input("Keterangan Nomor Boks")
+    with st.form("input_arsip"):
+        no_berkas = st.text_input("No Berkas")
+        kode_klasifikasi = st.text_input("Kode Klasifikasi")
+        lokasi_bangunan = st.text_input("Lokasi Bangunan")
+        jenis_bangunan = st.text_input("Jenis Bangunan")
+        retribusi = st.text_input("Retribusi")
+        kurun_waktu = st.text_input("Kurun Waktu")
+        jumlah_arsip = st.number_input("Jumlah Arsip", min_value=0, step=1)
+        tingkat_perkembangan = st.text_input("Tingkat Perkembangan")
+        keterangan_boks = st.text_input("Keterangan Nomor Boks")
 
-            submit = st.form_submit_button("💾 Simpan Arsip")
+        uploaded_pdf = st.file_uploader(
+            "Upload PDF Arsip (opsional)",
+            type=["pdf"]
+        )
 
-        if submit:
-            if not no_berkas or not kode_klasifikasi:
-                st.error("No Berkas dan Kode Klasifikasi wajib diisi.")
-            else:
-                supabase.table("koleksi_arsip").insert({
-                    "no_berkas": no_berkas,
-                    "kode_klasifikasi": kode_klasifikasi,
-                    "lokasi_bangunan": lokasi_bangunan,
-                    "jenis_bangunan": jenis_bangunan,
-                    "retribusi": retribusi,
-                    "kurun_waktu": kurun_waktu,
-                    "jumlah_arsip": jumlah_arsip,
-                    "tingkat_perkembangan": tingkat_perkembangan,
-                    "keterangan_boks": keterangan_boks
-                }).execute()
+        submit = st.form_submit_button("💾 Simpan Arsip")
 
-                st.success("✅ Arsip berhasil ditambahkan")
-                st.rerun()
+    if submit:
+        if not no_berkas or not kode_klasifikasi:
+            st.error("No Berkas dan Kode Klasifikasi wajib diisi.")
+        else:
+            file_name = None
+            file_path = None
+            file_url = None
+
+            # =========================
+            # UPLOAD PDF (JIKA ADA)
+            # =========================
+            if uploaded_pdf:
+                import time
+                timestamp = int(time.time())
+                clean_name = uploaded_pdf.name.replace(" ", "_")
+
+                file_path = f"{no_berkas}/{timestamp}_{clean_name}"
+
+                supabase.storage \
+                    .from_("arsip-pdf") \
+                    .upload(
+                        path=file_path,
+                        file=uploaded_pdf.getvalue(),
+                        file_options={"content-type": "application/pdf"}
+                    )
+
+                signed = supabase.storage \
+                    .from_("arsip-pdf") \
+                    .create_signed_url(file_path, 60 * 60 * 24 * 365)
+
+                file_name = uploaded_pdf.name
+                file_url = signed["signedURL"]
+
+            # =========================
+            # INSERT DATABASE
+            # =========================
+            supabase.table("koleksi_arsip").insert({
+                "no_berkas": no_berkas,
+                "kode_klasifikasi": kode_klasifikasi,
+                "lokasi_bangunan": lokasi_bangunan,
+                "jenis_bangunan": jenis_bangunan,
+                "retribusi": retribusi,
+                "kurun_waktu": kurun_waktu,
+                "jumlah_arsip": jumlah_arsip,
+                "tingkat_perkembangan": tingkat_perkembangan,
+                "keterangan_boks": keterangan_boks,
+                "file_pdf_name": file_name,
+                "file_pdf_path": file_path,
+                "file_pdf_url": file_url
+            }).execute()
+
+            st.success("✅ Arsip berhasil disimpan")
+            st.rerun()
 
     st.sidebar.divider()
     if st.sidebar.button("🔓 Logout"):
