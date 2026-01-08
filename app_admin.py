@@ -119,33 +119,33 @@ else:
     # INPUT ARSIP MANUAL
     # =========================
     elif menu == "➕ Input Arsip":
-    st.markdown("## ➕ Input Koleksi Arsip Baru")
+        st.markdown("## ➕ Input Koleksi Arsip Baru")
 
-    with st.form("input_arsip"):
-        no_berkas = st.text_input("No Berkas")
-        kode_klasifikasi = st.text_input("Kode Klasifikasi")
-        lokasi_bangunan = st.text_input("Lokasi Bangunan")
-        jenis_bangunan = st.text_input("Jenis Bangunan")
-        retribusi = st.text_input("Retribusi")
-        kurun_waktu = st.text_input("Kurun Waktu")
-        jumlah_arsip = st.number_input("Jumlah Arsip", min_value=0, step=1)
-        tingkat_perkembangan = st.text_input("Tingkat Perkembangan")
-        keterangan_boks = st.text_input("Keterangan Nomor Boks")
+        with st.form("input_arsip"):
+            no_berkas = st.text_input("No Berkas")
+            kode_klasifikasi = st.text_input("Kode Klasifikasi")
+            lokasi_bangunan = st.text_input("Lokasi Bangunan")
+            jenis_bangunan = st.text_input("Jenis Bangunan")
+            retribusi = st.text_input("Retribusi")
+            kurun_waktu = st.text_input("Kurun Waktu")
+            jumlah_arsip = st.number_input("Jumlah Arsip", min_value=0, step=1)
+            tingkat_perkembangan = st.text_input("Tingkat Perkembangan")
+            keterangan_boks = st.text_input("Keterangan Nomor Boks")
 
-        uploaded_pdf = st.file_uploader(
-            "Upload PDF Arsip (opsional)",
-            type=["pdf"]
-        )
+            uploaded_pdf = st.file_uploader(
+                "Upload PDF Arsip (opsional)",
+                type=["pdf"]
+            )
 
-        submit = st.form_submit_button("💾 Simpan Arsip")
+            submit = st.form_submit_button("💾 Simpan Arsip")
 
-    if submit:
-        if not no_berkas or not kode_klasifikasi:
-            st.error("No Berkas dan Kode Klasifikasi wajib diisi.")
-        else:
-            file_name = None
-            file_path = None
-            file_url = None
+        if submit:
+            if not no_berkas or not kode_klasifikasi:
+                st.error("No Berkas dan Kode Klasifikasi wajib diisi.")
+            else:
+                file_name = None
+                file_path = None
+                file_url = None
 
             # =========================
             # UPLOAD PDF (JIKA ADA)
